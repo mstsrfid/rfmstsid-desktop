@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run",
+            "request": "launch",
+            "type": "dart",
+        },
+        {
+            "name": "Clean Project (Remove build files)",
+            "command": "git clean -fxd",
+            "request": "launch",
+            "type": "node-terminal"
+        },
+        {
+            "name": "Run BuildRunner",
+            "command": "fvm flutter pub run build_runner build --delete-conflicting-outputs",
+            "request": "launch",
+            "type": "node-terminal"
+        },
+        {
+            "name": "Generate l10n",
+            "command": "fvm flutter gen-l10n",
+            "request": "launch",
+            "type": "node-terminal"
+        }
+    ]
+}
