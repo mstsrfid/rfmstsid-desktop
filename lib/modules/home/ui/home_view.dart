@@ -2,11 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rfid/common/route.dart';
 import 'package:rfid/data/repositories/serial_repository.dart';
+import 'package:rfid/modules/home/cubits/serial_cubit.dart';
 
 class HomeView extends StatelessWidget {
-  const HomeView({super.key});
+  const HomeView._();
 
-  static Route<void> route() => createRoute((context) => const HomeView());
+  static Widget provide() => BlocProvider(
+        create: (context) => SerialCubit(
+          context.read(),
+          context.read(),
+          context.read(),
+        ),
+        lazy: false,
+        child: const HomeView._(),
+      );
+
+  static Route<void> route() => createRoute(provide());
 
   @override
   Widget build(BuildContext context) {

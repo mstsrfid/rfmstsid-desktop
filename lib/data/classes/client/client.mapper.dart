@@ -20,6 +20,8 @@ class ClientMapper extends ClassMapperBase<Client> {
   @override
   final String id = 'Client';
 
+  static String _$id(Client v) => v.id;
+  static const Field<Client, String> _f$id = Field('id', _$id);
   static String _$rfid(Client v) => v.rfid;
   static const Field<Client, String> _f$rfid = Field('rfid', _$rfid);
   static String _$ime(Client v) => v.ime;
@@ -32,6 +34,7 @@ class ClientMapper extends ClassMapperBase<Client> {
 
   @override
   final Map<Symbol, Field<Client, dynamic>> fields = const {
+    #id: _f$id,
     #rfid: _f$rfid,
     #ime: _f$ime,
     #prezime: _f$prezime,
@@ -40,6 +43,7 @@ class ClientMapper extends ClassMapperBase<Client> {
 
   static Client _instantiate(DecodingData data) {
     return Client(
+        id: data.dec(_f$id),
         rfid: data.dec(_f$rfid),
         ime: data.dec(_f$ime),
         prezime: data.dec(_f$prezime),
@@ -95,7 +99,12 @@ extension ClientValueCopy<$R, $Out> on ObjectCopyWith<$R, Client, $Out> {
 
 abstract class ClientCopyWith<$R, $In extends Client, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({String? rfid, String? ime, String? prezime, bool? isPresent});
+  $R call(
+      {String? id,
+      String? rfid,
+      String? ime,
+      String? prezime,
+      bool? isPresent});
   ClientCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -106,8 +115,14 @@ class _ClientCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Client, $Out>
   @override
   late final ClassMapperBase<Client> $mapper = ClientMapper.ensureInitialized();
   @override
-  $R call({String? rfid, String? ime, String? prezime, bool? isPresent}) =>
+  $R call(
+          {String? id,
+          String? rfid,
+          String? ime,
+          String? prezime,
+          bool? isPresent}) =>
       $apply(FieldCopyWithData({
+        if (id != null) #id: id,
         if (rfid != null) #rfid: rfid,
         if (ime != null) #ime: ime,
         if (prezime != null) #prezime: prezime,
@@ -115,6 +130,7 @@ class _ClientCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Client, $Out>
       }));
   @override
   Client $make(CopyWithData data) => Client(
+      id: data.get(#id, or: $value.id),
       rfid: data.get(#rfid, or: $value.rfid),
       ime: data.get(#ime, or: $value.ime),
       prezime: data.get(#prezime, or: $value.prezime),

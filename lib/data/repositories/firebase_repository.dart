@@ -1,10 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-abstract class FirebaseRepository {
-  FirebaseRepository(this.collectionName);
-
+mixin FirebaseRepository {
   final _db = FirebaseFirestore.instance;
-  final String collectionName;
+
+  String get collectionName;
 
   CollectionReference<Map<String, dynamic>> get collection =>
       _db.collection(collectionName);

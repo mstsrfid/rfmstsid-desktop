@@ -12,7 +12,7 @@ class BadConnectionView extends StatelessWidget {
         child: const BadConnectionView._(),
       );
 
-  static Route<void> route() => createRoute((_) => provide());
+  static Route<void> route() => createRoute(provide());
 
   @override
   Widget build(BuildContext context) {

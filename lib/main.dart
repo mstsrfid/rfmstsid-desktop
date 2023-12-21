@@ -1,12 +1,18 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rfid/data/repositories/timestamp_repository.dart';
+import 'package:rfid/firebase_options.dart';
 import 'package:rfid/modules/bad_connection/ui/bad_connection_view.dart';
 import 'package:rfid/modules/home/ui/home_view.dart';
 import 'package:rfid/data/repositories/client_repository.dart';
 import 'package:rfid/data/repositories/serial_repository.dart';
+import 'package:rfid/modules/register_client/ui/register_client_view.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   final navigatorKey = GlobalKey<NavigatorState>();
 
   final serialRepository = SerialRepository(
@@ -18,17 +24,36 @@ void main() {
     ),
   );
 
+  final focusNode = FocusNode(
+    onKey: (node, event) {
+      if (event.isKeyPressed(LogicalKeyboardKey.f12)) {
+        navigatorKey.currentState?.pushAndRemoveUntil(
+          RegisterClientView.route(),
+          (_) => false,
+        );
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    },
+  );
+
   runApp(
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider.value(value: serialRepository),
-        RepositoryProvider(create: (_) => ClientRepository()),
+        RepositoryProvider(create: (_) => TimestampRepository()),
+        RepositoryProvider(
+          create: (context) => ClientRepository(context.read()),
+        ),
       ],
-      child: MaterialApp(
-        navigatorKey: navigatorKey,
-        home: serialRepository.isConnected
-            ? const HomeView()
-            : BadConnectionView.provide(),
+      child: Focus(
+        focusNode: focusNode,
+        child: MaterialApp(
+          navigatorKey: navigatorKey,
+          home: serialRepository.isConnected
+              ? HomeView.provide()
+              : BadConnectionView.provide(),
+        ),
       ),
     ),
   );

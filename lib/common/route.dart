@@ -1,4 +1,4 @@
 import 'package:flutter/material.dart';
 
-Route<dynamic> createRoute(Widget Function(BuildContext context) builder) =>
-    PageRouteBuilder(pageBuilder: (context, _, __) => builder(context));
+Route<dynamic> createRoute(Widget widget) =>
+    PageRouteBuilder(pageBuilder: (_, __, ___) => widget);
