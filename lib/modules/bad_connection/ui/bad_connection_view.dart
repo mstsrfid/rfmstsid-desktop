@@ -24,28 +24,31 @@ class BadConnectionView extends StatelessWidget {
           children: [
             const Text('Skener nije konektovan...'),
             const SizedBox(height: 16.0),
-            BlocBuilder<BadConnectionCubit, BadConnectionState>(
-              builder: (context, state) => switch (state) {
-                BadConnectionState.loading => const CircularProgressIndicator(),
-                BadConnectionState.idle => ElevatedButton(
-                    onPressed: () => context
-                        .read<BadConnectionCubit>()
-                        .connect()
-                        .then((status) =>
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text(
-                                switch (status) {
-                                  SerialConnectionStatus.connected =>
-                                    'Uspjesno konektovano',
-                                  SerialConnectionStatus.disconnected =>
-                                    'Nije uspjela konekcija',
-                                },
-                              ),
-                            ))),
-                    child: const Text(
-                      'Pritisnite ovdje za uspostavu konekcije',
-                    ),
+            BlocBuilder<BadConnectionCubit, IsLoading>(
+              builder: (context, isLoading) {
+                if (isLoading) {
+                  return const CircularProgressIndicator();
+                }
+
+                return ElevatedButton(
+                  onPressed: () => context
+                      .read<BadConnectionCubit>()
+                      .connect()
+                      .then((status) =>
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(
+                              switch (status) {
+                                SerialConnectionStatus.connected =>
+                                  'Uspjesno konektovano',
+                                SerialConnectionStatus.disconnected =>
+                                  'Nije uspjela konekcija',
+                              },
+                            ),
+                          ))),
+                  child: const Text(
+                    'Pritisnite ovdje za uspostavu konekcije',
                   ),
+                );
               },
             ),
           ],
