@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rfid/common/route.dart';
 import 'package:rfid/data/repositories/client_repository.dart';
-import 'package:rfid/data/repositories/serial_repository.dart';
 import 'package:rfid/modules/home/cubits/serial_cubit.dart';
 
 class HomeView extends StatelessWidget {

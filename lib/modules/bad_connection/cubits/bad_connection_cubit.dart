@@ -1,21 +1,17 @@
-import 'dart:async';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rfid/data/repositories/serial_repository.dart';
 
-// This isn't a cubit, but the rules state that logic should be here
-final class BadConnectionCubit {
-  static Timer? timer;
+enum BadConnectionState { loading, idle }
 
-  BadConnectionCubit(SerialRepository serialRepository) {
-    if (timer != null) {
-      return;
-    }
+final class BadConnectionCubit extends Cubit<BadConnectionState> {
+  BadConnectionCubit(this._serialRepository) : super(BadConnectionState.idle);
 
-    timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (serialRepository.connect() == SerialConnectionStatus.connected) {
-        timer!.cancel();
-        timer = null;
-      }
-    });
+  final SerialRepository _serialRepository;
+
+  Future<SerialConnectionStatus> connect() {
+    emit(BadConnectionState.loading);
+    return _serialRepository
+        .connect()
+        .whenComplete(() => emit(BadConnectionState.idle));
   }
 }
