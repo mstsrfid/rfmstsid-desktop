@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rfid/data/classes/client/client.dart';
 import 'package:rfid/data/repositories/timestamp_repository.dart';
 import 'package:rfid/data/repositories/firebase_repository.dart';
@@ -10,9 +11,18 @@ final class ClientRepository with FirebaseRepository {
 
   final TimestampRepository _timestampRepository;
 
-  Future<List<Client>> getClients() => collection.get().then((data) => data.docs
-      .map((e) => ClientMapper.fromMap(e.data()..['id'] = e.id))
-      .toList());
+  List<Client> _parseClients(QuerySnapshot<Map<String, dynamic>> data) =>
+      data.docs
+          .map((e) => ClientMapper.fromMap(e.data()..['id'] = e.id))
+          .toList();
+
+  Future<List<Client>> getClients() => collection.get().then(_parseClients);
+
+  Stream<List<Client>> get clientStream async* {
+    await for (final data in collection.snapshots()) {
+      yield _parseClients(data);
+    }
+  }
 
   Future<void> createClient(String ime, String prezime, String rfid) async {
     final client = Client(

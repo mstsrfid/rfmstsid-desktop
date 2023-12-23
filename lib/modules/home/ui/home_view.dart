@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rfid/common/route.dart';
+import 'package:rfid/data/repositories/client_repository.dart';
 import 'package:rfid/data/repositories/serial_repository.dart';
 import 'package:rfid/modules/home/cubits/serial_cubit.dart';
 
@@ -24,36 +25,33 @@ class HomeView extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextButton(
-                onPressed: () => context.read<SerialRepository>().sendOK(),
-                child: const Text(
-                  'SEND OK',
-                  style: TextStyle(color: Colors.green),
+          child: StreamBuilder(
+            stream: context.select(
+              (ClientRepository repo) => repo.clientStream,
+            ),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Text('NO DATA');
+              }
+
+              final clients = snapshot.data!;
+              return ListView.builder(
+                itemCount: clients.length,
+                itemBuilder: (context, index) => Container(
+                  padding: const EdgeInsets.all(16.0),
+                  margin: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: Row(
+                    children: [
+                      Text(
+                        '${clients[index].ime} ${clients[index].prezime}',
+                      ),
+                      const Spacer(),
+                      Text(clients[index].isPresent ? 'PRISUTAN' : 'ODSUTAN'),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16.0),
-              TextButton(
-                onPressed: () => context.read<SerialRepository>().sendBAD(),
-                child: const Text(
-                  'SEND BAD',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-              const SizedBox(height: 16.0),
-              StreamBuilder(
-                stream:
-                    context.select((SerialRepository repo) => repo.wordStream),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const Text('null');
-                  }
-                  return Text(snapshot.data!);
-                },
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),

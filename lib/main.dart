@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,6 +38,25 @@ Future<void> main() async {
       return KeyEventResult.ignored;
     },
   );
+
+  final db = FirebaseFirestore.instance;
+  db.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
+
+  Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+    switch (result) {
+      case ConnectivityResult.wifi:
+      case ConnectivityResult.ethernet:
+      case ConnectivityResult.mobile:
+        db.enableNetwork();
+      case ConnectivityResult.none:
+        db.disableNetwork();
+      default:
+        break;
+    }
+  });
 
   runApp(
     MultiRepositoryProvider(
