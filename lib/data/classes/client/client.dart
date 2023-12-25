@@ -1,9 +1,10 @@
 import 'package:dart_mappable/dart_mappable.dart';
+import 'package:rfid/data/repositories/firebase_repository.dart';
 
 part 'client.mapper.dart';
 
 @MappableClass()
-final class Client with ClientMappable {
+final class Client with FirebaseEntity, ClientMappable {
   Client({
     required this.id,
     required this.rfid,
@@ -12,6 +13,7 @@ final class Client with ClientMappable {
     required this.isPresent,
   });
 
+  @override
   final String id;
   final String rfid;
   final String ime;

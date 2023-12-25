@@ -7,56 +7,48 @@ import 'package:flutter_libserialport/flutter_libserialport.dart';
 enum SerialConnectionStatus { connected, disconnected }
 
 final class SerialRepository {
-  SerialRepository(this.onConnectionUpdate) {
-    connect();
-  }
+  SerialRepository(this.onConnectionUpdate);
 
   SerialConnectionStatus connect() {
-    final ports = SerialPort.availablePorts
+    final port = SerialPort.availablePorts
         .map((e) => SerialPort(e))
-        .where((e) => e.transport == SerialPortTransport.usb);
+        .where((e) => e.transport == SerialPortTransport.usb)
+        .firstOrNull;
 
-    _arduino = ports.cast<SerialPort?>().firstWhere(
-          (e) => e!.vendorId == 9025,
-          orElse: () => null,
-        );
-
-    if (_arduino == null) {
-      onConnectionUpdate(SerialConnectionStatus.disconnected);
+    if (port == null) {
+      log('No arduino found');
       return SerialConnectionStatus.disconnected;
     }
 
-    if (_arduino!.isOpen) {
-      _arduino!.close();
-    }
-
-    if (!_arduino!.openReadWrite()) {
+    if (!port.openReadWrite()) {
       log(SerialPort.lastError.toString());
-      onConnectionUpdate(SerialConnectionStatus.disconnected);
       return SerialConnectionStatus.disconnected;
     }
 
-    _reader = SerialPortReader(_arduino!);
-    _dataStream = _reader!.stream.asBroadcastStream();
+    final config = SerialPortConfig();
+    config.baudRate = 9600;
+    config.bits = 8;
+    config.stopBits = 1;
+    port.config = config;
+    final reader = SerialPortReader(port);
+
+    _dataStream = reader.stream.asBroadcastStream();
+    _arduino = port;
 
     onConnectionUpdate(SerialConnectionStatus.connected);
     return SerialConnectionStatus.connected;
   }
 
   SerialPort? _arduino;
-  SerialPortReader? _reader;
   Stream<List<int>>? _dataStream;
   final void Function(SerialConnectionStatus status) onConnectionUpdate;
-
-  bool get isConnected => _arduino != null;
 
   void _sendData(List<int> data) {
     try {
       _arduino!.write(Uint8List.fromList(data));
     } on SerialPortError catch (_) {
       onConnectionUpdate(SerialConnectionStatus.disconnected);
-      _arduino!.close();
-      _reader!.close();
+      _dataStream = null;
       _arduino = null;
     }
   }
