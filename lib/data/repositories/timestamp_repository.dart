@@ -11,10 +11,16 @@ final class TimestampRepository
 
   @override
   ClientTimestamps decode(Map<String, dynamic> data) =>
-      ClientTimestampsMapper.fromMap(data);
+      ClientTimestampsMapper.fromMap(data
+        ..['timestamps'] = (data['timestamps'] as List)
+            .cast<int>()
+            .map((e) => DateTime.fromMillisecondsSinceEpoch(e))
+            .toList());
 
   @override
-  Map<String, dynamic> encode(ClientTimestamps data) => data.toMap();
+  Map<String, dynamic> encode(ClientTimestamps data) => data.toMap()
+    ..['timestamps'] =
+        data.timestamps.map((e) => e.millisecondsSinceEpoch).toList();
 
   @override
   void onConnectionChanged(bool isOffline) {

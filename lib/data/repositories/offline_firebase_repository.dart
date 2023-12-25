@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:rfid/data/repositories/firebase_repository.dart';
@@ -12,8 +13,17 @@ abstract class OfflineFirebaseRepository<T extends FirebaseEntity>
         case ConnectivityResult.wifi:
         case ConnectivityResult.ethernet:
         case ConnectivityResult.mobile:
+          if (_isOffline == false) {
+            return;
+          }
+          log('NEW STATUS: ONLINE');
           onConnectionChanged(_isOffline = false);
+
         case ConnectivityResult.none:
+          if (_isOffline == true) {
+            return;
+          }
+          log('NEW STATUS: OFFLINE');
           onConnectionChanged(_isOffline = true);
         default:
           break;
@@ -21,15 +31,15 @@ abstract class OfflineFirebaseRepository<T extends FirebaseEntity>
     }
 
     final conn = Connectivity();
-    conn.checkConnectivity().then(fireConnectionUpdate);
+    // conn.checkConnectivity().then(fireConnectionUpdate);
     conn.onConnectivityChanged.listen(fireConnectionUpdate);
   }
 
   final SharedPreferences _prefs;
   String get prefsKey => collectionName;
 
-  bool _isOffline = true;
-  bool get isOffline => _isOffline;
+  bool? _isOffline;
+  bool get isOffline => _isOffline!;
 
   void onConnectionChanged(bool isOffline);
 
@@ -42,7 +52,7 @@ abstract class OfflineFirebaseRepository<T extends FirebaseEntity>
       .firstWhere((e) => e!.id == id, orElse: () => null);
 
   Future<List<T>> getAllMaybeOffline() async {
-    if (_isOffline) {
+    if (isOffline) {
       return getAllOffline();
     }
 
@@ -54,7 +64,7 @@ abstract class OfflineFirebaseRepository<T extends FirebaseEntity>
   }
 
   Future<T?> getMaybeOffline(String id) async {
-    if (_isOffline) {
+    if (isOffline) {
       return getOffline(id);
     }
 
@@ -84,7 +94,7 @@ abstract class OfflineFirebaseRepository<T extends FirebaseEntity>
   Future<void> setMaybeOffline(T data) async {
     await setOffline(data);
 
-    if (!_isOffline) {
+    if (!isOffline) {
       await set(data);
     }
   }

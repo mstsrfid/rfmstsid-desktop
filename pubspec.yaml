@@ -17,6 +17,7 @@ dependencies:
   shared_preferences: ^2.2.2
   firedart: ^0.9.7
   flutter_libserialport: ^0.3.0
+  uuid: ^4.2.2
 
 dev_dependencies:
   flutter_test:

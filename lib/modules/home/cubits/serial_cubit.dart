@@ -38,10 +38,9 @@ final class SerialCubit extends Cubit<SerialState> {
         return;
       }
 
-      // TODO maybe these don't need to be awaited?
-      await clientRepository
-          .setClient(client.copyWith(isPresent: !client.isPresent));
-      await timestampRepository.addTimestamp(client);
+      // TODO IF A BUG APPEARS, AWAIT THESE TWO FUNCTIONS
+      clientRepository.setClient(client.copyWith(isPresent: !client.isPresent));
+      timestampRepository.addTimestamp(client);
 
       serialRepository.sendOK();
       Future.delayed(const Duration(seconds: 2)).then((_) => locked = false);

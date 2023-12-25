@@ -32,8 +32,6 @@ final class SerialRepository {
     port.config = config;
     final reader = SerialPortReader(port);
 
-    print(port.name);
-
     _dataStream = reader.stream.asBroadcastStream();
     _arduino = port;
 
@@ -62,7 +60,6 @@ final class SerialRepository {
     final buffer = <int>[];
 
     await for (final data in _dataStream!) {
-      log('DATA $data');
       buffer.addAll(data);
       final newLineIndex = buffer.indexOf(10);
       if (newLineIndex != -1) {

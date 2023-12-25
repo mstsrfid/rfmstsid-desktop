@@ -51,16 +51,18 @@ Future<void> main() async {
     },
   );
 
-  final prefsRepository = await SharedPreferences.getInstance();
+  final sharedPreferences = await SharedPreferences.getInstance();
+  // sharedPreferences.clear();
 
   runApp(
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider.value(value: serialRepository),
-        RepositoryProvider(create: (_) => TimestampRepository(prefsRepository)),
+        RepositoryProvider(
+            create: (_) => TimestampRepository(sharedPreferences)),
         RepositoryProvider(
           create: (context) => ClientRepository(
-            prefsRepository,
+            sharedPreferences,
             context.read(),
           ),
         ),
