@@ -6,23 +6,29 @@ import 'package:rfid/data/repositories/client_repository.dart';
 import 'package:rfid/data/repositories/serial_repository.dart';
 import 'package:rfid/data/repositories/timestamp_repository.dart';
 
-// TODO what is this?
-final class SerialState {}
+final class SerialState {
+  SerialState(this.clients);
+
+  final List<Client> clients;
+}
 
 final class SerialCubit extends Cubit<SerialState> {
   SerialCubit(
     SerialRepository serialRepository,
     ClientRepository clientRepository,
     TimestampRepository timestampRepository,
-  ) : super(SerialState()) {
+  ) : super(SerialState([])) {
+    _clientSubscription = clientRepository.clientStream
+        .listen((clients) => emit(SerialState(clients)));
+
     bool locked = false;
-    _subscription = serialRepository.wordStream.listen((rfid) async {
+    _serialSubscription = serialRepository.wordStream.listen((rfid) async {
       if (locked) {
         return;
       }
       locked = true;
 
-      final client = (await clientRepository.getClients())
+      final client = state.clients
           .cast<Client?>()
           .firstWhere((e) => e!.rfid == rfid, orElse: () => null);
 
@@ -32,7 +38,9 @@ final class SerialCubit extends Cubit<SerialState> {
         return;
       }
 
-      clientRepository.setClient(client.copyWith(isPresent: !client.isPresent));
+      // TODO maybe these don't need to be awaited?
+      await clientRepository
+          .setClient(client.copyWith(isPresent: !client.isPresent));
       await timestampRepository.addTimestamp(client);
 
       serialRepository.sendOK();
@@ -40,11 +48,13 @@ final class SerialCubit extends Cubit<SerialState> {
     });
   }
 
-  StreamSubscription? _subscription;
+  StreamSubscription? _clientSubscription;
+  StreamSubscription? _serialSubscription;
 
   @override
   Future<void> close() async {
-    await _subscription?.cancel();
+    await _clientSubscription?.cancel();
+    await _serialSubscription?.cancel();
     return super.close();
   }
 }

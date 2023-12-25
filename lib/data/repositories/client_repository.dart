@@ -1,42 +1,64 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:rfid/data/classes/client/client.dart';
-import 'package:rfid/data/repositories/timestamp_repository.dart';
-import 'package:rfid/data/repositories/firebase_repository.dart';
+import 'dart:async';
 
-final class ClientRepository with FirebaseRepository {
-  ClientRepository(this._timestampRepository);
+import 'package:rfid/data/classes/client/client.dart';
+import 'package:rfid/data/repositories/offline_firebase_repository.dart';
+import 'package:rfid/data/repositories/timestamp_repository.dart';
+
+final class ClientRepository extends OfflineFirebaseRepository<Client> {
+  ClientRepository(super._prefs, this._timestampRepository) {
+    collection.stream.listen((data) => _clientStreamController
+        .add(data.map((e) => decode(e.map..['id'] = e.id)).toList()));
+  }
 
   @override
   String get collectionName => 'CLIENTS';
 
-  final TimestampRepository _timestampRepository;
+  @override
+  Client decode(Map<String, dynamic> data) => ClientMapper.fromMap(data);
 
-  List<Client> _parseClients(QuerySnapshot<Map<String, dynamic>> data) =>
-      data.docs
-          .map((e) => ClientMapper.fromMap(e.data()..['id'] = e.id))
-          .toList();
+  @override
+  Map<String, dynamic> encode(Client data) => data.toMap();
 
-  Future<List<Client>> getClients() => collection.get().then(_parseClients);
-
-  Stream<List<Client>> get clientStream async* {
-    await for (final data in collection.snapshots()) {
-      yield _parseClients(data);
+  @override
+  void onConnectionChanged(bool isOffline) {
+    if (isOffline) {
+      _clientStreamController.add(getAllOffline());
+    } else {
+      final downstream = getAllOffline();
+      getAllMaybeOffline().then((upstream) {
+        final correctClients = upstream.indexed.map(
+          (e) => e.$2.copyWith(isPresent: downstream[e.$1].isPresent),
+        );
+        for (final client in correctClients) {
+          setMaybeOffline(client);
+        }
+      });
     }
   }
 
+  final TimestampRepository _timestampRepository;
+
+  final _clientStreamController = StreamController<List<Client>>.broadcast();
+  Stream<List<Client>> get clientStream => _clientStreamController.stream;
+
   Future<void> createClient(String ime, String prezime, String rfid) async {
     final client = Client(
+      // TODO use uuid
       id: '',
       rfid: rfid,
       ime: ime,
       prezime: prezime,
       isPresent: false,
     );
-    final doc = collection.doc();
-    await doc.set(client.toMap()..remove('id'));
-    await _timestampRepository.setClear(client.copyWith(id: doc.id));
+
+    await setMaybeOffline(client);
+    await _timestampRepository.setClear(client.copyWith(id: client.id));
   }
 
-  Future<void> setClient(Client client) async =>
-      collection.doc(client.id).set(client.toMap()..remove('id'));
+  Future<void> setClient(Client client) =>
+      setMaybeOffline(client).whenComplete(() {
+        if (isOffline) {
+          _clientStreamController.add(getAllOffline());
+        }
+      });
 }

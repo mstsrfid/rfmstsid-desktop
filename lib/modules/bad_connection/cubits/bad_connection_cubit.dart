@@ -8,8 +8,7 @@ final class BadConnectionCubit extends Cubit<IsLoading> {
 
   final SerialRepository _serialRepository;
 
-  Future<SerialConnectionStatus> connect() {
-    emit(true);
-    return _serialRepository.connect().whenComplete(() => emit(false));
+  SerialConnectionStatus connect() {
+    return _serialRepository.connect();
   }
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rfid/common/route.dart';
 import 'package:rfid/data/classes/client/client.dart';
-import 'package:rfid/data/repositories/client_repository.dart';
 import 'package:rfid/modules/home/cubits/serial_cubit.dart';
 
 class HomeView extends StatelessWidget {
@@ -27,39 +26,19 @@ class HomeView extends StatelessWidget {
         child: Container(
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(vertical: 64.0),
-          child: StreamBuilder(
-            stream: context.select(
-              (ClientRepository repo) => repo.clientStream,
+          child: BlocBuilder<SerialCubit, SerialState>(
+            builder: (context, state) => Container(
+              constraints: const BoxConstraints(maxWidth: 800.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: state.clients.length,
+                itemBuilder: (_, index) => _buildClient(index, state.clients),
+              ),
             ),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Text('NO DATA');
-              }
-
-              final clients = snapshot.data!;
-
-              for (int i = 0; i < 100; i++) {
-                clients.add(Client(
-                    id: '',
-                    rfid: '',
-                    ime: 'IME',
-                    prezime: 'PREZIME',
-                    isPresent: false));
-              }
-
-              return Container(
-                constraints: const BoxConstraints(maxWidth: 800.0),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(16.0),
-                ),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: clients.length,
-                  itemBuilder: (_, index) => _buildClient(index, clients),
-                ),
-              );
-            },
           ),
         ),
       ),

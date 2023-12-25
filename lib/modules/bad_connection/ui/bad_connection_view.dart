@@ -31,20 +31,17 @@ class BadConnectionView extends StatelessWidget {
                 }
 
                 return ElevatedButton(
-                  onPressed: () => context
-                      .read<BadConnectionCubit>()
-                      .connect()
-                      .then((status) =>
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(
-                              switch (status) {
-                                SerialConnectionStatus.connected =>
-                                  'Uspjesno konektovano',
-                                SerialConnectionStatus.disconnected =>
-                                  'Nije uspjela konekcija',
-                              },
-                            ),
-                          ))),
+                  onPressed: () =>
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(
+                      switch (context.read<BadConnectionCubit>().connect()) {
+                        SerialConnectionStatus.connected =>
+                          'Uspjesno konektovano',
+                        SerialConnectionStatus.disconnected =>
+                          'Nije uspjela konekcija',
+                      },
+                    ),
+                  )),
                   child: const Text(
                     'Pritisnite ovdje za uspostavu konekcije',
                   ),

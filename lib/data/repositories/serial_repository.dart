@@ -1,83 +1,74 @@
-import 'dart:async';
 import 'dart:convert';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html';
+import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
-import 'package:serial/serial.dart';
+import 'package:flutter_libserialport/flutter_libserialport.dart';
 
 enum SerialConnectionStatus { connected, disconnected }
 
 final class SerialRepository {
   SerialRepository(this.onConnectionUpdate);
 
-  Future<SerialConnectionStatus> connect() async {
-    try {
-      final port = await window.navigator.serial.requestPort();
-      await port.open(baudRate: 9600);
+  SerialConnectionStatus connect() {
+    final port = SerialPort.availablePorts
+        .map((e) => SerialPort(e))
+        .where((e) => e.transport == SerialPortTransport.usb)
+        .firstOrNull;
 
-      final writer = port.writable.writer;
-      await writer.ready;
-      _reader = port.readable.reader;
-      _writer = writer;
-
-      onConnectionUpdate(SerialConnectionStatus.connected);
-      return SerialConnectionStatus.connected;
-    } catch (_) {
+    if (port == null) {
+      log('No arduino found');
       return SerialConnectionStatus.disconnected;
     }
+
+    if (!port.openReadWrite()) {
+      log(SerialPort.lastError.toString());
+      return SerialConnectionStatus.disconnected;
+    }
+
+    final config = SerialPortConfig();
+    config.baudRate = 9600;
+    config.bits = 8;
+    config.stopBits = 1;
+    port.config = config;
+    final reader = SerialPortReader(port);
+
+    print(port.name);
+
+    _dataStream = reader.stream.asBroadcastStream();
+    _arduino = port;
+
+    onConnectionUpdate(SerialConnectionStatus.connected);
+    return SerialConnectionStatus.connected;
   }
 
-  WritableStreamDefaultWriter? _writer;
-  ReadableStreamReader? _reader;
+  SerialPort? _arduino;
+  Stream<List<int>>? _dataStream;
   final void Function(SerialConnectionStatus status) onConnectionUpdate;
 
-  Future<void> _sendData(List<int> data) async {
+  void _sendData(List<int> data) {
     try {
-      _writer!.write(Uint8List.fromList(data));
-      await _writer!.ready;
-    } catch (_) {
+      _arduino!.write(Uint8List.fromList(data));
+    } on SerialPortError catch (_) {
       onConnectionUpdate(SerialConnectionStatus.disconnected);
-      _reading = false;
-      _reader = null;
-      _writer = null;
+      _dataStream = null;
+      _arduino = null;
     }
   }
 
   void sendOK() => _sendData(utf8.encode('1'));
   void sendBAD() => _sendData(utf8.encode('2'));
 
-  bool _reading = false;
-  Future<void> _startReading() async {
-    if (_reading) {
-      return;
-    }
-    _reading = true;
-
+  Stream<String> get wordStream async* {
     final buffer = <int>[];
 
-    while (_reading) {
-      try {
-        final data = await _reader!.read();
-
-        buffer.addAll(data.value.toList());
-        final newLineIndex = buffer.indexOf(10);
-        if (newLineIndex != -1) {
-          _streamController.add(utf8.decode(buffer.sublist(0, newLineIndex)));
-          buffer.removeRange(0, newLineIndex + 1);
-        }
-      } catch (_) {
-        onConnectionUpdate(SerialConnectionStatus.disconnected);
-        _reading = false;
-        _reader = null;
-        _writer = null;
+    await for (final data in _dataStream!) {
+      log('DATA $data');
+      buffer.addAll(data);
+      final newLineIndex = buffer.indexOf(10);
+      if (newLineIndex != -1) {
+        yield utf8.decode(buffer.sublist(0, newLineIndex));
+        buffer.removeRange(0, newLineIndex + 1);
       }
     }
   }
-
-  late final _streamController = StreamController<String>.broadcast(
-    onListen: () => _startReading(),
-    onCancel: () => _reading = false,
-  );
-  Stream<String> get wordStream => _streamController.stream;
 }
