@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_libserialport/flutter_libserialport.dart';
+import 'package:libserialport/libserialport.dart';
 
 enum SerialConnectionStatus { connected, disconnected }
 

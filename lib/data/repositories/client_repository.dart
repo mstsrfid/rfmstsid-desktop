@@ -30,16 +30,14 @@ final class ClientRepository extends OfflineFirebaseRepository<Client> {
       );
 
       final downstream = getAllOffline();
-      getAllMaybeOffline().then((upstream) {
+      getAll().then((upstream) {
         for (final downClient in downstream) {
           final i = upstream.indexWhere((e) => e.id == downClient.id);
           if (i != -1) {
             upstream[i] = upstream[i].copyWith(isPresent: downClient.isPresent);
           }
         }
-        for (final client in upstream) {
-          setMaybeOffline(client);
-        }
+        setAllMaybeOffline(upstream);
       });
     }
   }

@@ -75,6 +75,13 @@ abstract class OfflineFirebaseRepository<T extends FirebaseEntity>
     return data;
   }
 
+  Future<void> setAllOffline(List<T> data) {
+    return _prefs.setStringList(
+      prefsKey,
+      data.map((e) => jsonEncode(encode(e))).toList(),
+    );
+  }
+
   Future<void> setOffline(T data) {
     final offlineData = getAllOffline();
 
@@ -85,10 +92,7 @@ abstract class OfflineFirebaseRepository<T extends FirebaseEntity>
       offlineData[i] = data;
     }
 
-    return _prefs.setStringList(
-      prefsKey,
-      offlineData.map((e) => jsonEncode(encode(e))).toList(),
-    );
+    return setAllOffline(offlineData);
   }
 
   Future<void> setMaybeOffline(T data) async {
@@ -96,6 +100,16 @@ abstract class OfflineFirebaseRepository<T extends FirebaseEntity>
 
     if (!isOffline) {
       await set(data);
+    }
+  }
+
+  Future<void> setAllMaybeOffline(List<T> data) async {
+    await setAllOffline(data);
+
+    if (!isOffline) {
+      for (final d in data) {
+        await set(d);
+      }
     }
   }
 }
