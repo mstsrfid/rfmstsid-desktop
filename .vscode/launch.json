@@ -14,13 +14,13 @@
         },
         {
             "name": "Run BuildRunner",
-            "command": "fvm flutter pub run build_runner build --delete-conflicting-outputs",
+            "command": "dart run build_runner build --delete-conflicting-outputs",
             "request": "launch",
             "type": "node-terminal"
         },
         {
             "name": "Generate l10n",
-            "command": "fvm flutter gen-l10n",
+            "command": "flutter gen-l10n",
             "request": "launch",
             "type": "node-terminal"
         }
