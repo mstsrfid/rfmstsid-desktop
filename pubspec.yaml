@@ -16,6 +16,7 @@ dependencies:
   libserialport: 0.3.0+1
   sqflite: 2.3.2
   # flutter_libserialport: 0.3.0
+  sqflite_common_ffi: any
 
 dev_dependencies:
   flutter_test:

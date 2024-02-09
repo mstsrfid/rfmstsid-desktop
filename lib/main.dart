@@ -12,6 +12,7 @@ import 'package:rfid/data/repositories/client_repository.dart';
 import 'package:rfid/data/repositories/serial_repository.dart';
 import 'package:rfid/modules/register_client/register_client_view.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,9 @@ Future<void> main() async {
       return KeyEventResult.ignored;
     },
   );
+
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
 
   final db = await openDatabase('rfid.db');
 
