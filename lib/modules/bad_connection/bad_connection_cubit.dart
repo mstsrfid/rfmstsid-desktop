@@ -7,8 +7,5 @@ final class BadConnectionCubit extends Cubit<IsLoading> {
   BadConnectionCubit(this._serialRepository) : super(false);
 
   final SerialRepository _serialRepository;
-
-  SerialConnectionStatus connect() {
-    return _serialRepository.connect();
-  }
+  SerialConnectionStatus connect() => _serialRepository.connect();
 }

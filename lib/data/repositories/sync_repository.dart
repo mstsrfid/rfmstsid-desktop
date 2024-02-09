@@ -53,6 +53,8 @@ abstract class SyncRepository<T extends DBEntity> {
       .timeout(const Duration(seconds: 1))
       .catchError((_, __) => _sqlite.get(null));
 
+  Future<List<T>> getAllLocal() => _sqlite.get(null);
+
   Future<void> tryEmptyQueue() => _queue.get(null).then((rows) {
         for (final row in rows) {
           _firebase
@@ -63,8 +65,12 @@ abstract class SyncRepository<T extends DBEntity> {
         }
       });
 
+  /// WARNING: awaiting this doesn't guarantee that all data has been synced
+  /// to firebase, so calling any non-local get method produces weird results.
   Future<int> set(T data) => _sqlite
       .set(data)
       .then((id) => _queue.set(_fromMap(data.toMap()..['id'] = id)))
-      .then((id) => tryEmptyQueue().then((_) => id));
+      .whenComplete(() => tryEmptyQueue());
+
+  Future<bool> isQueueEmpty() => _queue.rowCount().then((len) => len == 0);
 }

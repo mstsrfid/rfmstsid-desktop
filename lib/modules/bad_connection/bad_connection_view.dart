@@ -42,9 +42,7 @@ class BadConnectionView extends StatelessWidget {
                       },
                     ),
                   )),
-                  child: const Text(
-                    'Pritisnite ovdje za uspostavu konekcije',
-                  ),
+                  child: const Text('Pritisnite ovdje za uspostavu konekcije'),
                 );
               },
             ),

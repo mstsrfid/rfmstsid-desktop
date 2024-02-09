@@ -19,15 +19,25 @@ final class ClientRepository extends SyncRepository<Client> {
     getAll().then((clients) => _clientStreamController.add(clients));
   }
 
-  final _clientStreamController = StreamController<List<Client>>.broadcast();
+  final _clientStreamController = StreamController<List<Client>>();
   Stream<List<Client>> get clientStream => _clientStreamController.stream;
 
   Future<void> createClient(String ime, String prezime, String rfid) => set(
           Client(
               id: null, rfid: rfid, ime: ime, prezime: prezime, isPresent: 0))
-      .then(
-          (_) => getAll().then((value) => _clientStreamController.add(value)));
+      .then((_) =>
+          getAllLocal().then((value) => _clientStreamController.add(value)));
 
   Future<void> setClient(Client client) => set(client).whenComplete(
-      () => getAll().then((value) => _clientStreamController.add(value)));
+      () => getAllLocal().then((value) => _clientStreamController.add(value)));
+
+  Future<void> resyncNames() async {
+    if (await isQueueEmpty()) {
+      return getAll().then((clients) {
+        for (final client in clients) {
+          set(client);
+        }
+      });
+    }
+  }
 }

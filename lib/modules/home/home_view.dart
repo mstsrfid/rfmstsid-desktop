@@ -37,6 +37,9 @@ class HomeView extends StatelessWidget {
               if (!snapshot.hasData) {
                 return const CircularProgressIndicator();
               }
+              if (snapshot.data!.isEmpty) {
+                return const Text('Nema korisnika. Pritisnite f12.');
+              }
 
               return Container(
                 constraints: const BoxConstraints(maxWidth: 800.0),

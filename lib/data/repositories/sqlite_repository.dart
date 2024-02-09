@@ -28,4 +28,8 @@ class SqliteRepository<T extends DBEntity> {
   /// Returns the number of rows affected.
   Future<int> delete(SqliteFilter? filter) =>
       _db.delete(_tableName, where: filter?.text, whereArgs: filter?.args);
+
+  Future<int> rowCount() => _db
+      .rawQuery('SELECT COUNT(*) FROM $_tableName;')
+      .then((value) => value.first['COUNT(*)'] as int);
 }

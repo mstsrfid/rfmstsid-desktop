@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rfid/common/route.dart';
-import 'package:rfid/modules/home/home_view.dart';
 import 'package:rfid/modules/register_client/register_client_cubit.dart';
 
 class RegisterClientView extends StatelessWidget {
@@ -20,7 +19,7 @@ class RegisterClientView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Registrovanje osoblja'),
         leading: BackButton(
-          onPressed: () => Navigator.pushReplacement(context, HomeView.route()),
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: SafeArea(

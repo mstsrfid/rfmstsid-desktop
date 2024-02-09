@@ -63,6 +63,7 @@ Future<void> main() async {
             clientRepository: context.read(),
             timestampRepository: context.read(),
           ),
+          lazy: false,
         )
       ],
       child: Focus(

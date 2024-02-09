@@ -8,7 +8,10 @@ final class TimeoutRepository {
     required ClientRepository clientRepository,
     required TimestampRepository timestampRepository,
   }) {
+    clientRepository.resyncNames();
     Timer.periodic(const Duration(hours: 1), (_) {
+      clientRepository.resyncNames();
+
       final now = DateTime.now();
       if (now.hour > 19) {
         clientRepository.getAll().then((clients) {
