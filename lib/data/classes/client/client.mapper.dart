@@ -20,16 +20,16 @@ class ClientMapper extends ClassMapperBase<Client> {
   @override
   final String id = 'Client';
 
-  static String _$id(Client v) => v.id;
-  static const Field<Client, String> _f$id = Field('id', _$id);
+  static int? _$id(Client v) => v.id;
+  static const Field<Client, int> _f$id = Field('id', _$id);
   static String _$rfid(Client v) => v.rfid;
   static const Field<Client, String> _f$rfid = Field('rfid', _$rfid);
   static String _$ime(Client v) => v.ime;
   static const Field<Client, String> _f$ime = Field('ime', _$ime);
   static String _$prezime(Client v) => v.prezime;
   static const Field<Client, String> _f$prezime = Field('prezime', _$prezime);
-  static bool _$isPresent(Client v) => v.isPresent;
-  static const Field<Client, bool> _f$isPresent =
+  static int _$isPresent(Client v) => v.isPresent;
+  static const Field<Client, int> _f$isPresent =
       Field('isPresent', _$isPresent);
 
   @override
@@ -40,6 +40,8 @@ class ClientMapper extends ClassMapperBase<Client> {
     #prezime: _f$prezime,
     #isPresent: _f$isPresent,
   };
+  @override
+  final bool ignoreNull = true;
 
   static Client _instantiate(DecodingData data) {
     return Client(
@@ -100,11 +102,7 @@ extension ClientValueCopy<$R, $Out> on ObjectCopyWith<$R, Client, $Out> {
 abstract class ClientCopyWith<$R, $In extends Client, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   $R call(
-      {String? id,
-      String? rfid,
-      String? ime,
-      String? prezime,
-      bool? isPresent});
+      {int? id, String? rfid, String? ime, String? prezime, int? isPresent});
   ClientCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -116,13 +114,13 @@ class _ClientCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Client, $Out>
   late final ClassMapperBase<Client> $mapper = ClientMapper.ensureInitialized();
   @override
   $R call(
-          {String? id,
+          {Object? id = $none,
           String? rfid,
           String? ime,
           String? prezime,
-          bool? isPresent}) =>
+          int? isPresent}) =>
       $apply(FieldCopyWithData({
-        if (id != null) #id: id,
+        if (id != $none) #id: id,
         if (rfid != null) #rfid: rfid,
         if (ime != null) #ime: ime,
         if (prezime != null) #prezime: prezime,

@@ -1,73 +1,43 @@
 import 'dart:async';
 
 import 'package:rfid/data/classes/client/client.dart';
-import 'package:rfid/data/repositories/offline_firebase_repository.dart';
-import 'package:rfid/data/repositories/timestamp_repository.dart';
-import 'package:uuid/uuid.dart';
+import 'package:rfid/data/repositories/sync_repository.dart';
+import 'package:sqflite/sqlite_api.dart';
 
-final class ClientRepository extends OfflineFirebaseRepository<Client> {
-  ClientRepository(super._prefs, this._timestampRepository);
+final class ClientRepository extends SyncRepository<Client> {
+  ClientRepository({
+    required Database db,
+    required String tableName,
+    required super.fromMap,
+  }) : super(
+          db: db,
+          tableName: tableName,
+          tableCreationString: Client.createTable,
+        ) {
+    db.execute(Client.createTable(tableName));
 
-  @override
-  String get collectionName => 'CLIENTS';
+    getAll().then((clients) => _clientStreamController.add(clients));
+  }
 
-  @override
-  Client decode(Map<String, dynamic> data) => ClientMapper.fromMap(data);
+  final _clientStreamController = StreamController<List<Client>>();
+  Stream<List<Client>> get clientStream => _clientStreamController.stream;
 
-  @override
-  Map<String, dynamic> encode(Client data) => data.toMap();
+  Future<void> createClient(String ime, String prezime, String rfid) => set(
+          Client(
+              id: null, rfid: rfid, ime: ime, prezime: prezime, isPresent: 0))
+      .then((_) =>
+          getAllLocal().then((value) => _clientStreamController.add(value)));
 
-  @override
-  void onConnectionChanged(bool isOffline) {
-    if (isOffline) {
-      _clientStreamController.add(getAllOffline());
-      _clientSnapshots?.cancel();
-    } else {
-      _clientSnapshots = collection.stream.listen(
-        (data) => _clientStreamController.add(
-          data.map((e) => decode(e.map..['id'] = e.id)).toList(),
-        ),
-      );
+  Future<void> setClient(Client client) => set(client).whenComplete(
+      () => getAllLocal().then((value) => _clientStreamController.add(value)));
 
-      final downstream = getAllOffline();
-      getAllMaybeOffline().then((upstream) {
-        for (final downClient in downstream) {
-          final i = upstream.indexWhere((e) => e.id == downClient.id);
-          if (i != -1) {
-            upstream[i] = upstream[i].copyWith(isPresent: downClient.isPresent);
-          }
-        }
-        for (final client in upstream) {
-          setMaybeOffline(client);
+  Future<void> resyncNames() async {
+    if (await isQueueEmpty()) {
+      return getAll().then((clients) {
+        for (final client in clients) {
+          set(client);
         }
       });
     }
   }
-
-  StreamSubscription? _clientSnapshots;
-
-  final TimestampRepository _timestampRepository;
-
-  final _clientStreamController = StreamController<List<Client>>.broadcast();
-  Stream<List<Client>> get clientStream => _clientStreamController.stream;
-
-  Future<void> createClient(String ime, String prezime, String rfid) async {
-    final client = Client(
-      id: const Uuid().v1(),
-      rfid: rfid,
-      ime: ime,
-      prezime: prezime,
-      isPresent: false,
-    );
-
-    await setMaybeOffline(client);
-    await _timestampRepository.setClear(client.copyWith(id: client.id));
-  }
-
-  Future<void> setClient(Client client) =>
-      setMaybeOffline(client).whenComplete(() {
-        if (isOffline) {
-          _clientStreamController.add(getAllOffline());
-        }
-      });
 }
