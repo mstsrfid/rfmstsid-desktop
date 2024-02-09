@@ -32,4 +32,8 @@ class SqliteRepository<T extends DBEntity> {
   Future<int> rowCount() => _db
       .rawQuery('SELECT COUNT(*) FROM $_tableName;')
       .then((value) => value.first['COUNT(*)'] as int);
+
+  Future<void> setAutoIncrementValue(int val) => _db.rawQuery(
+      'INSERT OR REPLACE INTO SQLITE_SEQUENCE (name, seq) VALUES (?, ?)',
+      [_tableName, val]);
 }

@@ -50,6 +50,7 @@ Future<void> main() async {
             tableName: 'TIMESTAMPS',
             fromMap: ClientTimestampMapper.fromMap,
           ),
+          lazy: false,
         ),
         RepositoryProvider(
           create: (_) => ClientRepository(
@@ -57,6 +58,7 @@ Future<void> main() async {
             tableName: 'CLIENTS',
             fromMap: ClientMapper.fromMap,
           ),
+          lazy: false,
         ),
         RepositoryProvider(
           create: (context) => TimeoutRepository(

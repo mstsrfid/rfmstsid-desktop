@@ -8,7 +8,6 @@ final class TimeoutRepository {
     required ClientRepository clientRepository,
     required TimestampRepository timestampRepository,
   }) {
-    clientRepository.resyncNames();
     Timer.periodic(const Duration(hours: 1), (_) {
       clientRepository.resyncNames();
 

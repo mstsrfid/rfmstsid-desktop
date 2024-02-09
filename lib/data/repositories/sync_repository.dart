@@ -72,5 +72,13 @@ abstract class SyncRepository<T extends DBEntity> {
       .then((id) => _queue.set(_fromMap(data.toMap()..['id'] = id)))
       .whenComplete(() => tryEmptyQueue());
 
+  Future<int> getMaxFirebaseIndex() => _firebase
+      .getAll()
+      .then((values) => values.reduce((val, e) => val.id! > e.id! ? val : e))
+      .then((value) => value.id!);
+
+  Future<void> setAutoIncrementValue(int val) =>
+      _sqlite.setAutoIncrementValue(val);
+
   Future<bool> isQueueEmpty() => _queue.rowCount().then((len) => len == 0);
 }

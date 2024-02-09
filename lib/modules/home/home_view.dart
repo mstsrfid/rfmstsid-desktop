@@ -41,20 +41,41 @@ class HomeView extends StatelessWidget {
                 return const Text('Nema korisnika. Pritisnite f12.');
               }
 
-              return Container(
-                constraints: const BoxConstraints(maxWidth: 800.0),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(16.0),
-                ),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (_, index) => _buildClient(
-                    index,
-                    snapshot.data!,
+              return Column(
+                children: [
+                  BlocBuilder<SerialCubit, Client?>(
+                    builder: (context, welcomeer) => Visibility(
+                      visible: welcomeer != null,
+                      child: Builder(builder: (context) {
+                        final msg = welcomeer!.isPresent == 0
+                            ? 'Dobrodošao/la'
+                            : 'Doviđenja';
+                        return Text(
+                          '$msg ${welcomeer.ime} ${welcomeer.prezime}',
+                          style: const TextStyle(fontSize: 24.0),
+                        );
+                      }),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 24.0),
+                  Flexible(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 800.0),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (_, index) => _buildClient(
+                          index,
+                          snapshot.data!,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           ),

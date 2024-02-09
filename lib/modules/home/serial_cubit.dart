@@ -6,12 +6,15 @@ import 'package:rfid/data/repositories/client_repository.dart';
 import 'package:rfid/data/repositories/serial_repository.dart';
 import 'package:rfid/data/repositories/timestamp_repository.dart';
 
-final class SerialCubit extends Cubit<()> {
+typedef _Welcomeer = Client?;
+
+final class SerialCubit extends Cubit<_Welcomeer> {
   SerialCubit(
     SerialRepository serialRepository,
     ClientRepository clientRepository,
     TimestampRepository timestampRepository,
-  ) : super(()) {
+  ) : super(null) {
+    Timer? timer;
     bool locked = false;
     _serialSubscription = serialRepository.wordStream.listen((rfid) async {
       if (locked) {
@@ -32,6 +35,16 @@ final class SerialCubit extends Cubit<()> {
       clientRepository
           .setClient(client.copyWith(isPresent: 1 - client.isPresent));
       timestampRepository.addTimestamp(client.id!);
+
+      emit(client);
+      if (timer != null) {
+        timer?.cancel();
+        timer = null;
+      }
+      timer = Timer(const Duration(seconds: 2), () {
+        emit(null);
+        timer = null;
+      });
 
       serialRepository.sendOK();
       Future.delayed(const Duration(seconds: 2)).then((_) => locked = false);

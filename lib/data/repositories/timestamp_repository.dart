@@ -17,4 +17,7 @@ final class TimestampRepository extends SyncRepository<ClientTimestamp> {
 
   Future<void> addTimestamp(int clientId) =>
       set(ClientTimestamp(null, clientId, DateTime.now().toUtc()));
+
+  Future<void> rememberAutoincrement() =>
+      getMaxFirebaseIndex().then(setAutoIncrementValue);
 }
